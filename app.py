@@ -7,28 +7,28 @@ model, labelencoder, variables, scaler = pickle.load(open("modelo-class.pkl", "r
 
 st.title("Predicción de Ataque al Corazón ❤️")
 
-# Inputs (ajusta a TODAS tus variables)
+# Inputs
 age = st.number_input("Edad")
-avg_glucose_level = st.number_input("Glucosa")
+avg_glucose_level = st.number_input("Nivel de glucosa")
 
 hypertension = st.selectbox("Hipertensión", [0,1])
 heart_disease = st.selectbox("Enfermedad cardíaca", [0,1])
 ever_married = st.selectbox("Casado", [0,1])
 
-# IMPORTANTE: DataFrame con TODAS las columnas
-input_dict = {col: 0 for col in variables}
+smoking_status = st.selectbox("Fumador", [0,1,2])  
+# (ajusta esto si tienes más categorías)
 
-# Asignar valores reales
-input_dict["age"] = age
-input_dict["avg_glucose_level"] = avg_glucose_level
-input_dict["hypertension_1"] = hypertension
-input_dict["heart_disease_1"] = heart_disease
-input_dict["ever_married_Yes"] = ever_married
+# Crear DataFrame EXACTO
+input_data = pd.DataFrame([{
+    'age': age,
+    'hypertension': hypertension,
+    'heart_disease': heart_disease,
+    'ever_married': ever_married,
+    'avg_glucose_level': avg_glucose_level,
+    'smoking_status': smoking_status
+}])
 
-# Convertir a DataFrame
-input_data = pd.DataFrame([input_dict])
-
-# Escalar
+# Escalar variables numéricas
 input_data[['age','avg_glucose_level']] = scaler.transform(
     input_data[['age','avg_glucose_level']]
 )
@@ -39,6 +39,6 @@ if st.button("Predecir"):
     resultado = labelencoder.inverse_transform(prediction)
 
     if resultado[0] == 1:
-        st.error("⚠️ Alto riesgo")
+        st.error("⚠️ Alto riesgo de ataque al corazón")
     else:
         st.success("✅ Bajo riesgo")
