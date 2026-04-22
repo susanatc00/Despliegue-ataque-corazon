@@ -6,69 +6,59 @@ import pandas as pd
 model, labelencoder, variables, scaler = pickle.load(open("modelo-class.pkl", "rb"))
 
 st.title("Predicción de Ataque al Corazón ❤️")
-st.write("Ingresa los datos del paciente:")
 
 # Inputs
-age = st.number_input("Edad", min_value=0, max_value=120, value=30)
-avg_glucose_level = st.number_input("Nivel de glucosa", value=100.0)
+age = st.number_input("Edad", 0, 120, 30)
+glucose = st.number_input("Glucosa", value=100.0)
 
-hypertension = st.selectbox("Hipertensión", ["No", "Sí"])
-heart_disease = st.selectbox("Enfermedad cardíaca", ["No", "Sí"])
-ever_married = st.selectbox("¿Ha estado casado/a?", ["No", "Sí"])
+hypertension = st.selectbox("Hipertensión", ["No","Sí"])
+heart = st.selectbox("Enfermedad cardíaca", ["No","Sí"])
+married = st.selectbox("Casado", ["No","Sí"])
 
-smoking_status = st.selectbox(
-    "Estado de fumador",
-    ["formerly smoked", "never smoked", "Unknown", "smokes"]
+smoke = st.selectbox("Fumador",
+    ["formerly smoked","never smoked","Unknown","smokes"]
 )
 
-# Botón
 if st.button("Predecir"):
 
-    # Crear DataFrame EXACTO del modelo
-    input_data = pd.DataFrame(columns=variables)
-    input_data.loc[0] = [0] * len(variables)
+    # 🔥 crear vector EXACTO del tamaño del modelo
+    fila = [0]*len(variables)
 
-    # Numéricas
-    if 'age' in variables:
-        input_data.at[0, 'age'] = age
+    # llenar por índice (NO por nombre → evita todos los errores)
+    for i,col in enumerate(variables):
 
-    if 'avg_glucose_level' in variables:
-        input_data.at[0, 'avg_glucose_level'] = avg_glucose_level
+        if col == "age":
+            fila[i] = age
 
-    # Binarias
-    if hypertension == "Sí" and 'hypertension_Yes' in variables:
-        input_data.at[0, 'hypertension_Yes'] = 1
+        elif col == "avg_glucose_level":
+            fila[i] = glucose
 
-    if heart_disease == "Sí" and 'heart_disease_Yes' in variables:
-        input_data.at[0, 'heart_disease_Yes'] = 1
+        elif col == "hypertension_Yes" and hypertension=="Sí":
+            fila[i] = 1
 
-    if ever_married == "Sí" and 'ever_married_Yes' in variables:
-        input_data.at[0, 'ever_married_Yes'] = 1
+        elif col == "heart_disease_Yes" and heart=="Sí":
+            fila[i] = 1
 
-    # Smoking (match automático incluso con comillas raras)
-    for col in variables:
-        if "smoking_status" in col and smoking_status in col:
-            input_data.at[0, col] = 1
+        elif col == "ever_married_Yes" and married=="Sí":
+            fila[i] = 1
 
-    # Asegurar orden correcto
-    input_data = input_data[variables]
+        elif "smoking_status" in col and smoke in col:
+            fila[i] = 1
 
-    # Escalar
-    cols_to_scale = ['age', 'avg_glucose_level']
-    cols_to_scale = [c for c in cols_to_scale if c in variables]
+    # convertir a DataFrame
+    X = pd.DataFrame([fila], columns=variables)
 
-    if cols_to_scale:
-        input_data[cols_to_scale] = scaler.transform(input_data[cols_to_scale])
+    # escalar
+    if "age" in variables and "avg_glucose_level" in variables:
+        X[["age","avg_glucose_level"]] = scaler.transform(
+            X[["age","avg_glucose_level"]]
+        )
 
-    # 🔥 SOLUCIÓN FINAL: convertir a numpy
-    input_array = input_data.values
+    # numpy (sin validaciones de sklearn)
+    pred = model.predict(X.values)
+    res = labelencoder.inverse_transform(pred)
 
-    # Predicción
-    prediction = model.predict(input_array)
-    resultado = labelencoder.inverse_transform(prediction)
-
-    # Resultado
-    if resultado[0] == 1:
-        st.error("⚠️ Alto riesgo de ataque al corazón")
+    if res[0]==1:
+        st.error("⚠️ Alto riesgo")
     else:
-        st.success("✅ Bajo riesgo de ataque al corazón")
+        st.success("✅ Bajo riesgo")
