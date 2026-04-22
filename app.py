@@ -29,37 +29,36 @@ if st.button("Predecir"):
     input_data.loc[0] = [0] * len(variables)
 
     # Numéricas
-    if 'age' in input_data.columns:
+    if 'age' in variables:
         input_data.at[0, 'age'] = age
 
-    if 'avg_glucose_level' in input_data.columns:
+    if 'avg_glucose_level' in variables:
         input_data.at[0, 'avg_glucose_level'] = avg_glucose_level
 
     # Binarias
-    if hypertension == "Sí" and 'hypertension_Yes' in input_data.columns:
+    if hypertension == "Sí" and 'hypertension_Yes' in variables:
         input_data.at[0, 'hypertension_Yes'] = 1
 
-    if heart_disease == "Sí" and 'heart_disease_Yes' in input_data.columns:
+    if heart_disease == "Sí" and 'heart_disease_Yes' in variables:
         input_data.at[0, 'heart_disease_Yes'] = 1
 
-    if ever_married == "Sí" and 'ever_married_Yes' in input_data.columns:
+    if ever_married == "Sí" and 'ever_married_Yes' in variables:
         input_data.at[0, 'ever_married_Yes'] = 1
 
-    # 🔥 Smoking (match exacto automático)
-    for col in input_data.columns:
+    # 🔥 Smoking robusto
+    for col in variables:
         if "smoking_status" in col and smoking_status in col:
             input_data.at[0, col] = 1
 
-    # Escalar (solo si existen)
+    # Escalar
     cols_to_scale = ['age', 'avg_glucose_level']
-    cols_to_scale = [c for c in cols_to_scale if c in input_data.columns]
+    cols_to_scale = [c for c in cols_to_scale if c in variables]
 
     if cols_to_scale:
         input_data[cols_to_scale] = scaler.transform(input_data[cols_to_scale])
 
-    # 🔥 Asegurar orden EXACTO del modelo
-    if hasattr(model, "feature_names_in_"):
-        input_data = input_data[model.feature_names_in_]
+    # 🚀 IMPORTANTE: usar SOLO variables
+    input_data = input_data[variables]
 
     # Predicción
     prediction = model.predict(input_data)
