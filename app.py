@@ -9,26 +9,40 @@ st.title("Predicción de Ataque al Corazón ❤️")
 
 # Inputs
 age = st.number_input("Edad")
-avg_glucose_level = st.number_input("Nivel de glucosa")
+avg_glucose_level = st.number_input("Glucosa")
 
-hypertension = st.selectbox("Hipertensión", [0,1])
-heart_disease = st.selectbox("Enfermedad cardíaca", [0,1])
-ever_married = st.selectbox("Casado", [0,1])
+hypertension = st.selectbox("Hipertensión", ["No", "Sí"])
+heart_disease = st.selectbox("Enfermedad cardíaca", ["No", "Sí"])
+ever_married = st.selectbox("Casado", ["No", "Sí"])
 
-smoking_status = st.selectbox("Fumador", [0,1,2])  
-# (ajusta esto si tienes más categorías)
+smoking_status = st.selectbox(
+    "Estado de fumador",
+    ["formerly smoked", "never smoked", "Unknown", "smokes"]
+)
 
-# Crear DataFrame EXACTO
-input_data = pd.DataFrame([{
-    'age': age,
-    'hypertension': hypertension,
-    'heart_disease': heart_disease,
-    'ever_married': ever_married,
-    'avg_glucose_level': avg_glucose_level,
-    'smoking_status': smoking_status
-}])
+# Crear diccionario con todas las columnas en 0
+input_dict = {col: 0 for col in variables}
 
-# Escalar variables numéricas
+# Asignar valores
+input_dict["age"] = age
+input_dict["avg_glucose_level"] = avg_glucose_level
+
+if hypertension == "Sí":
+    input_dict["hypertension_Yes"] = 1
+
+if heart_disease == "Sí":
+    input_dict["heart_disease_Yes"] = 1
+
+if ever_married == "Sí":
+    input_dict["ever_married_Yes"] = 1
+
+# Smoking (one-hot)
+input_dict[f"smoking_status_{smoking_status}"] = 1
+
+# Convertir a DataFrame con orden correcto
+input_data = pd.DataFrame([input_dict])[variables]
+
+# Escalar
 input_data[['age','avg_glucose_level']] = scaler.transform(
     input_data[['age','avg_glucose_level']]
 )
