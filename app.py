@@ -43,8 +43,6 @@ data.info()
 To get a more detailed and interactive overview of the dataset, we'll use the `ydata-profiling` library. This library generates a comprehensive report including statistics, correlations, and visualizations for each column.
 """
 
-# Install ydata-profiling
-!pip install ydata-profiling
 
 # Import ProfileReport
 from ydata_profiling import ProfileReport
