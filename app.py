@@ -6,7 +6,6 @@ import pandas as pd
 model, labelencoder, variables, scaler = pickle.load(open("modelo-class.pkl", "rb"))
 
 st.title("Predicción de Ataque al Corazón ❤️")
-
 st.write("Ingresa los datos del paciente:")
 
 # Inputs
@@ -22,37 +21,45 @@ smoking_status = st.selectbox(
     ["formerly smoked", "never smoked", "Unknown", "smokes"]
 )
 
-# Botón de predicción
+# Botón
 if st.button("Predecir"):
 
-    # Crear diccionario con TODAS las columnas en 0
-    input_dict = dict.fromkeys(variables, 0)
+    # Crear DataFrame EXACTO del modelo
+    input_data = pd.DataFrame(columns=variables)
+    input_data.loc[0] = [0] * len(variables)
 
-    # Variables numéricas
-    input_dict['age'] = age
-    input_dict['avg_glucose_level'] = avg_glucose_level
+    # Numéricas
+    if 'age' in input_data.columns:
+        input_data.at[0, 'age'] = age
 
-    # Variables binarias
-    if hypertension == "Sí":
-        input_dict['hypertension_Yes'] = 1
+    if 'avg_glucose_level' in input_data.columns:
+        input_data.at[0, 'avg_glucose_level'] = avg_glucose_level
 
-    if heart_disease == "Sí":
-        input_dict['heart_disease_Yes'] = 1
+    # Binarias
+    if hypertension == "Sí" and 'hypertension_Yes' in input_data.columns:
+        input_data.at[0, 'hypertension_Yes'] = 1
 
-    if ever_married == "Sí":
-        input_dict['ever_married_Yes'] = 1
+    if heart_disease == "Sí" and 'heart_disease_Yes' in input_data.columns:
+        input_data.at[0, 'heart_disease_Yes'] = 1
 
-    # 🔥 Smoking dinámico (evita errores por comillas)
-    for col in variables:
+    if ever_married == "Sí" and 'ever_married_Yes' in input_data.columns:
+        input_data.at[0, 'ever_married_Yes'] = 1
+
+    # 🔥 Smoking (match exacto automático)
+    for col in input_data.columns:
         if "smoking_status" in col and smoking_status in col:
-            input_dict[col] = 1
+            input_data.at[0, col] = 1
 
-    # Crear DataFrame con orden EXACTO
-    input_data = pd.DataFrame([input_dict])[variables]
-
-    # Escalar variables numéricas
+    # Escalar (solo si existen)
     cols_to_scale = ['age', 'avg_glucose_level']
-    input_data[cols_to_scale] = scaler.transform(input_data[cols_to_scale])
+    cols_to_scale = [c for c in cols_to_scale if c in input_data.columns]
+
+    if cols_to_scale:
+        input_data[cols_to_scale] = scaler.transform(input_data[cols_to_scale])
+
+    # 🔥 Asegurar orden EXACTO del modelo
+    if hasattr(model, "feature_names_in_"):
+        input_data = input_data[model.feature_names_in_]
 
     # Predicción
     prediction = model.predict(input_data)
