@@ -45,10 +45,13 @@ if st.button("Predecir"):
     if ever_married == "Sí" and 'ever_married_Yes' in variables:
         input_data.at[0, 'ever_married_Yes'] = 1
 
-    # 🔥 Smoking robusto
+    # Smoking (match automático incluso con comillas raras)
     for col in variables:
         if "smoking_status" in col and smoking_status in col:
             input_data.at[0, col] = 1
+
+    # Asegurar orden correcto
+    input_data = input_data[variables]
 
     # Escalar
     cols_to_scale = ['age', 'avg_glucose_level']
@@ -57,11 +60,11 @@ if st.button("Predecir"):
     if cols_to_scale:
         input_data[cols_to_scale] = scaler.transform(input_data[cols_to_scale])
 
-    # 🚀 IMPORTANTE: usar SOLO variables
-    input_data = input_data[variables]
+    # 🔥 SOLUCIÓN FINAL: convertir a numpy
+    input_array = input_data.values
 
     # Predicción
-    prediction = model.predict(input_data)
+    prediction = model.predict(input_array)
     resultado = labelencoder.inverse_transform(prediction)
 
     # Resultado
